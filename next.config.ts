@@ -10,7 +10,15 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/api/unitconvert/:path*',
-        destination: 'https://api.proexergy.com/unitconvert/:path*',
+        destination: 'https://api.proexergy.com/unitconvert/:path*/',
+      },
+      {
+        source: '/api/refprop/:path*',
+        destination: 'https://api.proexergy.com/refprop/:path*/',
+      },
+      {
+        source: '/api/comfort/:path*',
+        destination: 'https://api.proexergy.com/comfort/:path*',
       },
     ];
   },

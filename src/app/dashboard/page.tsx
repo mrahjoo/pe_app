@@ -17,7 +17,36 @@ export default function DashboardHome() {
             </CardHeader>
           </Card>
         </Link>
-        {/* Add more dashboard sections here in the future */}
+        <Link href="/dashboard/thermodynamics" className="block group">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader>
+              <CardTitle className="group-hover:text-primary transition-colors">Thermodynamics (REFPROP)</CardTitle>
+              <CardDescription>
+                Equation-of-state fluid properties, refrigerant cycle tools, and substance databases powered by NIST REFPROP.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link href="/dashboard/thermal-comfort" className="block group">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader>
+              <CardTitle className="group-hover:text-primary transition-colors">Thermal Comfort</CardTitle>
+              <CardDescription>
+                Human physiological response models (PMV/PPD, UTCI, Heat Stress) for occupational safety and building performance.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link href="/dashboard/unit-converter" className="block group">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader>
+              <CardTitle className="group-hover:text-primary transition-colors">Unit Converter</CardTitle>
+              <CardDescription>
+                Quickly convert between engineering units across dozens of categories with full formula transparency.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
       </div>
     </div>
   );

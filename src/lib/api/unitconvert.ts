@@ -53,13 +53,13 @@ async function fetchUnitConvert<T>(endpoint: string, options?: RequestInit): Pro
 
 export const unitConvertApi = {
   getCategories: () => 
-    fetchUnitConvert<CategoryResponse[]>("/categories/"),
+    fetchUnitConvert<CategoryResponse[]>("/categories"),
 
   getUnitsByCategory: (categoryId: string) => 
-    fetchUnitConvert<UnitResponse[]>(`/categories/${categoryId}/units/`),
+    fetchUnitConvert<UnitResponse[]>(`/categories/${categoryId}/units`),
 
   convert: (request: ConvertRequest) => 
-    fetchUnitConvert<ConvertResponse>("/convert/", {
+    fetchUnitConvert<ConvertResponse>("/convert", {
       method: "POST",
       body: JSON.stringify(request),
     }),
