@@ -1,0 +1,17 @@
+services:
+  pe_app:
+    build: .
+    container_name: pe_app
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pe_app.rule=Host(`app.proexergy.com`)"
+      - "traefik.http.routers.pe_app.entrypoints=websecure"
+      - "traefik.http.routers.pe_app.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pe_app.loadbalancer.server.port=3000"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
