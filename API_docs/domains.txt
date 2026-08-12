@@ -1,0 +1,4 @@
+https://api.proexergy.com/unitconvert
+https://api.proexergy.com/psychrolib
+https://api.proexergy.com/comfort
+https://api.proexergy.com/refprop
