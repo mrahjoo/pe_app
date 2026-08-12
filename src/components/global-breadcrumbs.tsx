@@ -25,9 +25,9 @@ export function GlobalBreadcrumbs() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link href="/">Home</Link>
-              </BreadcrumbLink>
+              <Link href="/" className="transition-colors hover:text-foreground">
+                Home
+              </Link>
             </BreadcrumbItem>
             {segments.map((segment, index) => {
               const isLast = index === segments.length - 1;
@@ -45,9 +45,9 @@ export function GlobalBreadcrumbs() {
                     {isLast ? (
                       <BreadcrumbPage>{title}</BreadcrumbPage>
                     ) : (
-                      <BreadcrumbLink asChild>
-                        <Link href={href}>{title}</Link>
-                      </BreadcrumbLink>
+                      <Link href={href} className="transition-colors hover:text-foreground">
+                        {title}
+                      </Link>
                     )}
                   </BreadcrumbItem>
                 </React.Fragment>

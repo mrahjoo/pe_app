@@ -98,7 +98,7 @@ export default function UnitConverterPage() {
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label>Category</Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <Select value={selectedCategory} onValueChange={(val) => setSelectedCategory(val || "")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
@@ -116,7 +116,7 @@ export default function UnitConverterPage() {
               <div className="space-y-2">
                 <Label>From</Label>
                 <div className="flex items-center gap-2">
-                  <Select value={fromUnit} onValueChange={setFromUnit}>
+                  <Select value={fromUnit} onValueChange={(val) => setFromUnit(val || "")}>
                     <SelectTrigger className="flex-1">
                       <SelectValue placeholder="Select Unit" />
                     </SelectTrigger>
@@ -139,7 +139,7 @@ export default function UnitConverterPage() {
 
               <div className="space-y-2">
                 <Label>To</Label>
-                <Select value={toUnit} onValueChange={setToUnit}>
+                <Select value={toUnit} onValueChange={(val) => setToUnit(val || "")}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Unit" />
                   </SelectTrigger>
