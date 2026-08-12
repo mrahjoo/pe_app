@@ -75,7 +75,7 @@ export default function StateCalculatorPage() {
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label>Fluid</Label>
-              <Select value={selectedFluid} onValueChange={setSelectedFluid}>
+              <Select value={selectedFluid} onValueChange={(val) => setSelectedFluid(val || "")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a fluid" />
                 </SelectTrigger>
@@ -96,7 +96,7 @@ export default function StateCalculatorPage() {
             
             <div className="space-y-2">
               <Label>Input Pair (hIn)</Label>
-              <Select value={hIn} onValueChange={setHIn}>
+              <Select value={hIn} onValueChange={(val) => setHIn(val || "")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select inputs" />
                 </SelectTrigger>

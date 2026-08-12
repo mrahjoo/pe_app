@@ -100,7 +100,7 @@ export default function PmvPpdCalculatorPage() {
 
             <div className="space-y-2 pt-2">
               <Label>Model Standard</Label>
-              <Select value={model} onValueChange={setModel}>
+              <Select value={model} onValueChange={(val) => setModel(val || "")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select standard" />
                 </SelectTrigger>

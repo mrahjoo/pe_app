@@ -50,7 +50,7 @@ export default function FluidInfoPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Select value={selectedFluid} onValueChange={setSelectedFluid} disabled={loadingList}>
+              <Select value={selectedFluid} onValueChange={(val) => setSelectedFluid(val || "")} disabled={loadingList}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a fluid" />
                 </SelectTrigger>

@@ -101,7 +101,7 @@ export default function GlideCalculatorPage() {
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label>Refrigerant Blend</Label>
-              <Select value={selectedFluid} onValueChange={setSelectedFluid}>
+              <Select value={selectedFluid} onValueChange={(val) => setSelectedFluid(val || "")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a mixture" />
                 </SelectTrigger>
