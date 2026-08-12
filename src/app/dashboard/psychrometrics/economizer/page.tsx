@@ -64,8 +64,8 @@ export default function EconomizerPage() {
           unit_system: unit,
           pressure: p,
           streams: [
-              { mass_flow_dry_air: minOa, state: oa },
-              { mass_flow_dry_air: 1 - minOa, state: ra }
+              { mass_flow_dry_air: minOa, t_dry_bulb: oa.t_dry_bulb, rel_hum: oa.rel_hum },
+              { mass_flow_dry_air: 1 - minOa, t_dry_bulb: ra.t_dry_bulb, rel_hum: ra.rel_hum }
           ]
       });
 

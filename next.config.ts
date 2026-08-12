@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         source: '/api/psychrolib/:path*',
         destination: 'https://api.proexergy.com/psychrolib/:path*',
       },
+      {
+        source: '/api/unitconvert/:path*',
+        destination: 'https://api.proexergy.com/unitconvert/:path*',
+      },
     ];
   },
 };
