@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -14,6 +15,20 @@ export function Navbar() {
       <div className="container flex h-14 max-w-screen-2xl items-center px-4">
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
+            <div className="relative h-6 w-6">
+              <Image 
+                src="/logo/web/proexergy-mark-navy-64.webp" 
+                alt="ProExergy Logo" 
+                fill 
+                className="dark:hidden object-contain"
+              />
+              <Image 
+                src="/logo/web/proexergy-mark-white-64.webp" 
+                alt="ProExergy Logo" 
+                fill 
+                className="hidden dark:block object-contain"
+              />
+            </div>
             <span className="hidden font-bold sm:inline-block">
               ProExergy
             </span>
