@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { psychroCalc, PsychroState, UnitSystem } from "@/lib/api/psychrolib";
+import { trackEvent } from "@/lib/analytics";
 
 type InputType = "relHum" | "wetBulb" | "dewPoint" | "humRatio" | "vapPres";
 
@@ -60,6 +61,19 @@ export default function StateCalculatorPage() {
       } else {
         setResult(res as PsychroState);
       }
+
+      // Track the calculation event asynchronously
+      trackEvent({
+        eventType: "CALCULATOR_SUBMIT",
+        resource: "/dashboard/psychrometrics/state-calculator",
+        data: {
+          unitSystem: unit,
+          pressure: p,
+          dryBulb: db,
+          inputType,
+          inputValue: val
+        }
+      });
     } catch (err: any) {
       setError(err.message || "An error occurred during calculation.");
     } finally {

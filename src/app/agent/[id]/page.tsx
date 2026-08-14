@@ -29,19 +29,49 @@ export default async function AgentChatPage(props: {
 
   // Transform Prisma messages to AI SDK Message format
   const initialMessages = conversation.messages.map((m) => {
-    let parts: any[] = [{ type: "text", text: m.content }];
+    type TextPart = { type: 'text'; text: string };
+    type FilePart = { type: 'file'; mediaType: string; url: string; filename?: string };
+
+    let parts: Array<TextPart | FilePart> = [{ type: 'text', text: m.content }];
+
     if (m.parts) {
       try {
-        parts = JSON.parse(m.parts);
-      } catch (e) {
+        const parsedParts = JSON.parse(m.parts) as unknown;
+        if (Array.isArray(parsedParts)) {
+          const validParts = parsedParts
+            .filter((part): part is Record<string, unknown> => typeof part === 'object' && part !== null)
+            .map((part) => {
+              if (part.type === 'text' && typeof part.text === 'string') {
+                return { type: 'text' as const, text: part.text };
+              }
+
+              if (part.type === 'file' && typeof part.url === 'string') {
+                return {
+                  type: 'file' as const,
+                  mediaType: typeof part.mediaType === 'string' ? part.mediaType : 'image/jpeg',
+                  url: part.url,
+                  ...(typeof part.filename === 'string' ? { filename: part.filename } : {}),
+                };
+              }
+
+              return null;
+            })
+            .filter((part): part is TextPart | FilePart => part !== null);
+
+          if (validParts.length > 0) {
+            parts = validParts;
+          }
+        }
+      } catch {
         // ignore parse error and fallback to text
       }
     }
+
     return {
       id: m.id,
-      role: m.role as "user" | "assistant" | "system" | "data",
+      role: (m.role === 'data' ? 'assistant' : m.role) as 'user' | 'assistant' | 'system',
       content: m.content,
-      experimental_attachments: parts.some(p => p.url) ? parts : undefined,
+      parts,
     };
   });
 

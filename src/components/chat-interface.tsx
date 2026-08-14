@@ -11,9 +11,38 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+
+type ChatTextPart = {
+  type: 'text';
+  text: string;
+};
+
+type ChatFilePart = {
+  type: 'file';
+  mediaType: string;
+  url: string;
+  filename?: string;
+};
+
+type ChatToolInvocation = {
+  toolCallId: string;
+  toolName?: string;
+  state?: string;
+  args?: Record<string, unknown>;
+  result?: unknown;
+};
+
+type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content?: string;
+  parts?: Array<ChatTextPart | ChatFilePart>;
+  toolInvocations?: ChatToolInvocation[];
+};
+
 interface ChatInterfaceProps {
   chatId?: string;
-  initialMessages?: any[];
+  initialMessages?: ChatMessage[];
 }
 
 export function ChatInterface({ chatId, initialMessages = [] }: ChatInterfaceProps) {
@@ -23,8 +52,8 @@ export function ChatInterface({ chatId, initialMessages = [] }: ChatInterfacePro
   const [image, setImage] = useState<string | null>(null);
   const [activeChatId, setActiveChatId] = useState<string | undefined>(chatId);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { messages, sendMessage, status } = useChat({
-    id: chatId, // only use initial ID to prevent state reset
+  const { messages: rawMessages, sendMessage, status } = useChat({
+    id: chatId,
     transport: new DefaultChatTransport({
       api: '/api/chat',
       fetch: async (url, options) => {
@@ -37,11 +66,12 @@ export function ChatInterface({ chatId, initialMessages = [] }: ChatInterfacePro
         return response;
       }
     }),
-    messages: initialMessages,
+    messages: initialMessages as never,
     onFinish: () => {
       router.refresh();
     }
   });
+  const messages = rawMessages as ChatMessage[];
 
   const isLoading = status === 'submitted' || status === 'streaming';
   
@@ -64,14 +94,31 @@ export function ChatInterface({ chatId, initialMessages = [] }: ChatInterfacePro
     }
   };
 
-  const handleSubmit = (e?: React.FormEvent) => {
+  const handleSubmit = (e?: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLTextAreaElement>) => {
     e?.preventDefault();
     if (!input.trim() && !image) return;
-    
-    const attachments = image ? [{ url: image, contentType: image.split(';')[0].split(':')[1] || 'image/jpeg' }] : undefined;
-    
+
+    const parts: Array<ChatTextPart | ChatFilePart> = [];
+
+    if (input.trim()) {
+      parts.push({ type: 'text', text: input.trim() });
+    }
+
+    if (image) {
+      parts.push({
+        type: 'file',
+        mediaType: image.split(';')[0].split(':')[1] || 'image/jpeg',
+        url: image,
+        filename: 'uploaded-image',
+      });
+    }
+
     sendMessage(
-      { role: 'user', content: input, experimental_attachments: attachments } as any, 
+      {
+        id: crypto.randomUUID(),
+        role: 'user',
+        parts,
+      },
       { body: { chatId: activeChatId } }
     );
     setInput('');
@@ -101,80 +148,92 @@ export function ChatInterface({ chatId, initialMessages = [] }: ChatInterfacePro
             </Link>
           </div>
         ) : (
-          messages.map((m) => (
-            <div
-              key={m.id}
-              className={`flex gap-4 ${
-                m.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              {m.role !== 'user' && (
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <Bot size={18} className="text-primary" />
-                </div>
-              )}
-              
+          messages.map((m) => {
+            const textParts = (m.parts ?? []).filter(
+              (part): part is ChatTextPart => typeof part === 'object' && part !== null && part.type === 'text'
+            );
+            const fileParts = (m.parts ?? []).filter(
+              (part): part is ChatFilePart => typeof part === 'object' && part !== null && part.type === 'file'
+            );
+            const messageText = (m.content ?? textParts.map((part) => part.text).join('')) || '';
+
+            return (
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
-                  m.role === 'user'
-                    ? 'bg-primary text-primary-foreground rounded-tr-sm'
-                    : 'bg-muted rounded-tl-sm'
+                key={m.id}
+                className={`flex gap-4 ${
+                  m.role === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
-                <div className={`prose prose-sm max-w-none break-words ${m.role === 'user' ? 'prose-invert' : 'dark:prose-invert'}`}>
-                  <ReactMarkdown 
-                    remarkPlugins={[remarkGfm, remarkMath]}
-                    rehypePlugins={[rehypeKatex]}
-                  >
-                    {((m as any).content || m.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') || '').replace(/\\\(/g, '$').replace(/\\\)/g, '$').replace(/\\\[/g, '$$$').replace(/\\\]/g, '$$$')}
-                  </ReactMarkdown>
-                  {(m as any).experimental_attachments && (m as any).experimental_attachments.map((p: any, i: number) => {
-                    if (p.url) {
-                      return <img key={i} src={p.url} alt="uploaded" className="max-w-sm rounded-lg mt-2 mb-2" />;
-                    }
-                    return null;
-                  })}
-                </div>
-                {/* Tool Invocations */}
-                {(m as any).toolInvocations?.map((toolInvocation: any) => (
-                  <div key={toolInvocation.toolCallId} className="mt-4 border rounded-xl p-4 bg-background">
-                    {toolInvocation.toolName === 'weather' ? (
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2 font-medium text-foreground">
-                          ☁️ Weather in {toolInvocation.args.location}
-                        </div>
-                        {toolInvocation.state === 'result' ? (
-                          <div className="text-2xl font-bold text-foreground">
-                            {toolInvocation.result.temperature}°C
-                            <span className="text-sm font-normal text-muted-foreground ml-2">
-                              {toolInvocation.result.condition}
-                            </span>
+                {m.role !== 'user' && (
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Bot size={18} className="text-primary" />
+                  </div>
+                )}
+
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
+                    m.role === 'user'
+                      ? 'bg-primary text-primary-foreground rounded-tr-sm'
+                      : 'bg-muted rounded-tl-sm'
+                  }`}
+                >
+                  <div className={`prose prose-sm max-w-none break-words ${m.role === 'user' ? 'prose-invert' : 'dark:prose-invert'}`}>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm, remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
+                    >
+                      {messageText.replace(/\\\(/g, '$').replace(/\\\)/g, '$').replace(/\\\[/g, '$$$').replace(/\\\]/g, '$$$')}
+                    </ReactMarkdown>
+                    {fileParts.map((part, index) => (
+                      <img key={`${m.id}-file-${index}`} src={part.url} alt={part.filename ?? 'uploaded image'} className="mt-2 max-w-sm rounded-lg" />
+                    ))}
+                  </div>
+                  {/* Tool Invocations */}
+                  {(m.toolInvocations ?? []).map((toolInvocation: ChatToolInvocation) => {
+                    const toolLocation = typeof toolInvocation.args?.location === 'string' ? toolInvocation.args.location : '';
+                    const toolResult = toolInvocation.result as Record<string, unknown> | undefined;
+
+                    return (
+                      <div key={toolInvocation.toolCallId} className="mt-4 border rounded-xl p-4 bg-background">
+                        {toolInvocation.toolName === 'weather' ? (
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-2 font-medium text-foreground">
+                              ☁️ Weather in {toolLocation}
+                            </div>
+                            {toolInvocation.state === 'result' ? (
+                              <div className="text-2xl font-bold text-foreground">
+                                {String(toolResult?.temperature ?? '')}°C
+                                <span className="text-sm font-normal text-muted-foreground ml-2">
+                                  {String(toolResult?.condition ?? '')}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Loader2 size={14} className="animate-spin" />
+                                Fetching weather...
+                              </div>
+                            )}
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Loader2 size={14} className="animate-spin" />
-                            Fetching weather...
+                          <div className="text-sm text-muted-foreground">
+                            {toolInvocation.state === 'result'
+                              ? `Completed ${toolInvocation.toolName ?? 'tool'}`
+                              : `Running ${toolInvocation.toolName ?? 'tool'}...`}
                           </div>
                         )}
                       </div>
-                    ) : (
-                      <div className="text-sm text-muted-foreground">
-                        {toolInvocation.state === 'result' 
-                          ? `Completed ${toolInvocation.toolName}`
-                          : `Running ${toolInvocation.toolName}...`}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {m.role === 'user' && (
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-                  <User size={18} className="text-primary-foreground" />
+                    );
+                  })}
                 </div>
-              )}
-            </div>
-          ))
+
+                {m.role === 'user' && (
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
+                    <User size={18} className="text-primary-foreground" />
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
         
         {isLoading && (

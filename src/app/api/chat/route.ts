@@ -1,11 +1,22 @@
-import { google } from '@ai-sdk/google';
-import { streamText, createAgentUIStreamResponse } from 'ai';
+import { createAgentUIStreamResponse } from 'ai';
 import { myAgent } from '@/lib/agent';
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
+
+type ChatMessagePart =
+  | { type: 'text'; text: string }
+  | { type: 'file'; mediaType: string; url: string; filename?: string };
+
+type ChatMessageLike = {
+  id?: string;
+  role?: string;
+  content?: string;
+  parts?: unknown;
+  toolInvocations?: unknown[];
+};
 
 export async function POST(req: Request) {
   try {
@@ -27,11 +38,23 @@ export async function POST(req: Request) {
     }
 
 
-    const latestMessage = messages[messages.length - 1];
-    
-    // Extract content from either content field or parts array (AI SDK v7 format)
-    const messageContent = latestMessage.content || 
-      (latestMessage.parts ? latestMessage.parts.map((p: any) => p.text || '').join('') : '');
+    const latestMessage = messages[messages.length - 1] as ChatMessageLike;
+
+    const extractTextContent = (message: ChatMessageLike): string => {
+      const content = typeof message.content === 'string' ? message.content : '';
+      if (content) {
+        return content;
+      }
+
+      const rawParts = Array.isArray(message.parts) ? message.parts : [];
+      return rawParts
+        .filter((part): part is Record<string, unknown> => typeof part === 'object' && part !== null)
+        .filter((part) => part.type === 'text')
+        .map((part) => (typeof part.text === 'string' ? part.text : ''))
+        .join('');
+    };
+
+    const messageContent = extractTextContent(latestMessage);
 
     // If no conversationId is provided, this is a new chat
     if (!currentConversationId) {
@@ -45,55 +68,108 @@ export async function POST(req: Request) {
       currentConversationId = conversation.id;
     }
 
+    const safeParts: ChatMessagePart[] = Array.isArray(latestMessage.parts)
+      ? (() => {
+          const normalized: ChatMessagePart[] = [];
+          for (const part of latestMessage.parts as unknown[]) {
+            const candidate = part as Record<string, unknown>;
+
+            if (candidate.type === 'text' && typeof candidate.text === 'string') {
+              normalized.push({ type: 'text', text: candidate.text });
+              continue;
+            }
+
+            if (candidate.type === 'file' && typeof candidate.url === 'string') {
+              normalized.push({
+                type: 'file',
+                mediaType: typeof candidate.mediaType === 'string' ? candidate.mediaType : 'image/jpeg',
+                url: candidate.url,
+                ...(typeof candidate.filename === 'string' ? { filename: candidate.filename } : {}),
+              });
+            }
+          }
+          return normalized;
+        })()
+      : [{ type: 'text', text: messageContent }];
+
     // Save user message to database
     await prisma.message.create({
       data: {
         conversationId: currentConversationId,
-        role: latestMessage.role,
+        role: typeof latestMessage.role === 'string' ? latestMessage.role : 'user',
         content: messageContent,
-        parts: latestMessage.experimental_attachments ? JSON.stringify(latestMessage.experimental_attachments) : null,
+        parts: JSON.stringify(safeParts),
       }
     });
 
-    // Ensure UI messages conform to the expected format
-    const formattedMessages = messages.map((m: any) => {
-      let parts = m.parts || [];
-      if (parts.length === 0 && m.content) {
-        parts = [{ type: 'text', text: m.content }];
+    const normalizeMessage = (message: ChatMessageLike) => {
+      const rawParts = Array.isArray(message.parts) ? (message.parts as unknown[]) : [];
+      const normalizedParts: ChatMessagePart[] = [];
+
+      for (const part of rawParts) {
+        const candidate = part as Record<string, unknown>;
+
+        if (candidate.type === 'text' && typeof candidate.text === 'string') {
+          normalizedParts.push({ type: 'text', text: candidate.text });
+          continue;
+        }
+
+        if (candidate.type === 'file' && typeof candidate.url === 'string') {
+          normalizedParts.push({
+            type: 'file',
+            mediaType: typeof candidate.mediaType === 'string' ? candidate.mediaType : 'image/jpeg',
+            url: candidate.url,
+            ...(typeof candidate.filename === 'string' ? { filename: candidate.filename } : {}),
+          });
+        }
       }
-      if (m.experimental_attachments && m.experimental_attachments.length > 0) {
-        m.experimental_attachments.forEach((att: any) => {
-          parts.push({ type: 'image', image: att.url });
-        });
-      }
+
+      const content = typeof message.content === 'string' ? message.content : '';
+      const textContent = content || normalizedParts
+        .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+        .map((part) => part.text)
+        .join('');
+
       return {
-        id: m.id || crypto.randomUUID(),
-        role: m.role,
-        content: m.content || "",
-        parts: parts,
-        experimental_attachments: m.experimental_attachments,
-        ...(m.toolInvocations && { toolInvocations: m.toolInvocations })
+        id: typeof message.id === 'string' ? message.id : crypto.randomUUID(),
+        role: typeof message.role === 'string' ? message.role : 'user',
+        content: textContent,
+        parts: normalizedParts.length > 0 ? normalizedParts : (textContent ? [{ type: 'text' as const, text: textContent }] : []),
+        ...(Array.isArray(message.toolInvocations) ? { toolInvocations: message.toolInvocations } : {}),
       };
-    });
+    };
+
+    const formattedMessages = messages.map((message) => normalizeMessage(message as ChatMessageLike));
     
     console.log("FORMATTED MESSAGES", JSON.stringify(formattedMessages, null, 2));
+
+    const extractTextFromParts = (parts: unknown): string => {
+      if (!Array.isArray(parts)) {
+        return '';
+      }
+
+      return parts
+        .filter((part): part is Record<string, unknown> => typeof part === 'object' && part !== null)
+        .filter((part) => part.type === 'text')
+        .map((part) => (typeof part.text === 'string' ? part.text : ''))
+        .join('');
+    };
 
     // Call the Vercel AI SDK with ToolLoopAgent
     const response = await createAgentUIStreamResponse({
       agent: myAgent,
       uiMessages: formattedMessages,
       async onEnd({ responseMessage }) {
-        // Save the assistant's response to the database
-        const textParts = responseMessage?.parts?.filter((p: any) => p.type === 'text') || [];
-        const content = textParts.map((p: any) => p.text).join('');
-        
-        if (content || (responseMessage?.parts && responseMessage.parts.length > 0)) {
+        const rawParts = responseMessage && typeof responseMessage === 'object' && 'parts' in responseMessage ? responseMessage.parts : undefined;
+        const content = extractTextFromParts(rawParts);
+
+        if (content || (Array.isArray(rawParts) && rawParts.length > 0)) {
           await prisma.message.create({
             data: {
               conversationId: currentConversationId!,
               role: 'assistant',
               content: content,
-              parts: responseMessage?.parts ? JSON.stringify(responseMessage.parts) : null,
+              parts: rawParts ? JSON.stringify(rawParts) : null,
             }
           });
         }

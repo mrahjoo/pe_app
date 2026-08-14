@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model Conversation {
@@ -25,4 +25,26 @@ model Message {
   createdAt      DateTime     @default(now())
   
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  userId      String?  
+  sessionId   String?  
+  eventType   String   
+  resource    String?  
+  data        String?  // JSON string
+  userAgent   String?  
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model n8n_chat_histories {
+  id         Int    @id @default(autoincrement())
+  session_id String @db.VarChar(255)
+  message    Json
 }
