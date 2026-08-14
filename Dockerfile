@@ -35,10 +35,13 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Create a minimal Prisma config for migrations in production
+RUN echo 'export default { schema: "prisma/schema.prisma", datasource: { url: process.env.DATABASE_URL } };' > prisma.config.mjs
+
 USER nextjs
 
 EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["sh", "-c", "echo 'export default { schema: \"prisma/schema.prisma\", datasource: { url: process.env.DATABASE_URL } };' > prisma.config.mjs && npx prisma migrate deploy && node server.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
