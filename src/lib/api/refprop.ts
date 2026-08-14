@@ -66,7 +66,10 @@ export interface CalcResponse {
 }
 
 async function fetchRefprop<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${REFPROP_API_BASE_URL}${endpoint}`;
+  const isServer = typeof window === "undefined";
+  const baseUrl = isServer ? (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000") : "";
+  const url = `${baseUrl}${REFPROP_API_BASE_URL}${endpoint}`;
+  
   const response = await fetch(url, {
     headers: {
       "Content-Type": "application/json",

@@ -84,7 +84,10 @@ export interface ProcessClassifyRequest {
 
 // Reusable fetch function with error handling
 async function fetchPsychrolib<T>(endpoint: string, body: any): Promise<T> {
-  const url = `${PSYCHROLIB_API_BASE_URL}${endpoint}`;
+  const isServer = typeof window === "undefined";
+  const baseUrl = isServer ? (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000") : "";
+  const url = `${baseUrl}${PSYCHROLIB_API_BASE_URL}${endpoint}`;
+  
   const response = await fetch(url, {
     method: "POST",
     headers: {
