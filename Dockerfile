@@ -41,4 +41,4 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
+CMD ["sh", "-c", "echo 'export default { schema: \"prisma/schema.prisma\", datasource: { url: process.env.DATABASE_URL } };' > prisma.config.mjs && npx prisma migrate deploy && node server.js"]
