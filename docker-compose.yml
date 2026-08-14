@@ -4,8 +4,7 @@ services:
     container_name: pe_app
     restart: unless-stopped
     env_file: .env
-    volumes:
-      - pe_data:/app/prisma
+
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.pe_app.rule=Host(`app.proexergy.com`)"
@@ -19,5 +18,3 @@ networks:
   proxy:
     external: true
 
-volumes:
-  pe_data:
