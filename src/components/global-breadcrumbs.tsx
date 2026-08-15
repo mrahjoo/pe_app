@@ -23,7 +23,7 @@ export function GlobalBreadcrumbs() {
     <div className="border-b bg-muted/40">
       <div className="container px-4 py-3 md:px-8">
         <Breadcrumb>
-          <BreadcrumbList>
+          <BreadcrumbList className="flex-nowrap whitespace-nowrap overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <BreadcrumbItem>
               <Link href="/" className="transition-colors hover:text-foreground">
                 Home

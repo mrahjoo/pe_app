@@ -138,7 +138,7 @@ export function ChatInterface({ chatId, initialMessages = [] }: ChatInterfacePro
   return (
     <div className="flex flex-col h-full bg-background relative">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-4">
             <Bot size={48} className="opacity-20" />
@@ -171,7 +171,7 @@ export function ChatInterface({ chatId, initialMessages = [] }: ChatInterfacePro
                 )}
 
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
+                  className={`max-w-[90%] sm:max-w-[80%] rounded-2xl px-3 sm:px-4 py-2 sm:py-3 text-sm ${
                     m.role === 'user'
                       ? 'bg-primary text-primary-foreground rounded-tr-sm'
                       : 'bg-muted rounded-tl-sm'
@@ -250,10 +250,10 @@ export function ChatInterface({ chatId, initialMessages = [] }: ChatInterfacePro
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-background border-t">
+      <div className="p-2 sm:p-4 bg-background border-t">
         <form
           onSubmit={handleSubmit}
-          className="max-w-3xl mx-auto relative flex flex-col gap-2"
+          className="max-w-3xl mx-auto relative flex flex-col gap-1 sm:gap-2"
         >
           {image && (
             <div className="relative self-start mb-2">
@@ -271,7 +271,7 @@ export function ChatInterface({ chatId, initialMessages = [] }: ChatInterfacePro
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-3 mb-1 shrink-0 bg-muted text-muted-foreground rounded-full hover:bg-muted/80 transition-colors"
+              className="p-2 sm:p-3 mb-1 shrink-0 bg-muted text-muted-foreground rounded-full hover:bg-muted/80 transition-colors"
             >
               <Paperclip size={20} />
             </button>
@@ -284,7 +284,7 @@ export function ChatInterface({ chatId, initialMessages = [] }: ChatInterfacePro
             />
             <div className="relative flex-1">
               <textarea
-                className="w-full min-h-[56px] max-h-32 bg-muted/50 border border-input rounded-2xl px-4 py-4 pr-12 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none overflow-y-auto placeholder:text-muted-foreground"
+                className="w-full min-h-[48px] sm:min-h-[56px] max-h-32 bg-muted/50 border border-input rounded-2xl px-3 sm:px-4 py-3 sm:py-4 pr-10 sm:pr-12 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none overflow-y-auto placeholder:text-muted-foreground"
                 placeholder="Message Agent..."
                 value={input}
                 onChange={handleInputChange}
