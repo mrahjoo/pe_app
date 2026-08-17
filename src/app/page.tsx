@@ -29,7 +29,7 @@ export default function Home() {
 
         {/* Sub-headline */}
         <p className="mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-          ProExergy builds real-time thermodynamic simulation engines that power the next generation of smart building systems.
+          Physics-based HVAC intelligence for smarter building performance. ProExergy helps HVAC professionals model, analyze, optimize, and improve system performance.
         </p>
 
         {/* Call to Actions */}
