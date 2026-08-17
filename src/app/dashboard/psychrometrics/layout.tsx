@@ -9,6 +9,10 @@ const navItems = [
   { href: "/dashboard/psychrometrics/process", label: "Process Classifier" },
   { href: "/dashboard/psychrometrics/cooling-coil", label: "Cooling Coil Load" },
   { href: "/dashboard/psychrometrics/economizer", label: "Economizer Decision" },
+  { href: "/dashboard/psychrometrics/atmosphere", label: "Atmosphere Calculator" },
+  { href: "/dashboard/psychrometrics/mixing-box", label: "Air Mixing Box" },
+  { href: "/dashboard/psychrometrics/coil-selection", label: "Coil Selection" },
+  { href: "/dashboard/psychrometrics/general-process", label: "General HVAC Process" },
 ];
 
 export default function PsychrometricsLayout({

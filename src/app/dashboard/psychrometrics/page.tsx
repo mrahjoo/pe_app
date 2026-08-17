@@ -28,6 +28,26 @@ export default function PsychrometricsPage() {
       description: "Evaluate outdoor air against return air to assess free-cooling potential.",
       href: "/dashboard/psychrometrics/economizer",
     },
+    {
+      title: "Atmosphere Calculator",
+      description: "Convert site elevation into standard barometric pressure and temperature.",
+      href: "/dashboard/psychrometrics/atmosphere",
+    },
+    {
+      title: "Air Mixing Box Calculator",
+      description: "Combine multiple air streams into one resultant mixed state.",
+      href: "/dashboard/psychrometrics/mixing-box",
+    },
+    {
+      title: "Coil Selection Tool",
+      description: "HVAC coil selection using apparatus dew point, bypass factor, and contact factor.",
+      href: "/dashboard/psychrometrics/coil-selection",
+    },
+    {
+      title: "General HVAC Process",
+      description: "Compute leaving state and classification given sensible/latent loads or SHR.",
+      href: "/dashboard/psychrometrics/general-process",
+    },
   ];
 
   return (

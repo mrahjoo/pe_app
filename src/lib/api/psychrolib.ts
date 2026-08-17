@@ -82,6 +82,79 @@ export interface ProcessClassifyRequest {
   point_b: Partial<PsychroState>;
 }
 
+export interface StdAtmState {
+  altitude: number;
+  pressure: number;
+  t_dry_bulb: number;
+  unit_system: UnitSystem;
+}
+
+export interface StdAtmBatch {
+  results: StdAtmState[];
+  count: number;
+}
+
+export interface AltitudeInput {
+  unit_system?: UnitSystem;
+  altitude: number | number[];
+}
+
+export interface CoilAdpBfRequest {
+  unit_system?: UnitSystem;
+  pressure: number;
+  entering_state: Partial<PsychroState>;
+  leaving_state?: Partial<PsychroState> | null;
+  target_shr?: number | null;
+  leaving_dry_bulb?: number | null;
+  bypass_factor?: number | null;
+}
+
+export interface CoilAdpBfResponse {
+  entering_state: PsychroState;
+  leaving_state?: PsychroState | null;
+  adp_state: PsychroState;
+  adp_temperature: number;
+  sensible_heat_ratio: number;
+  bypass_factor?: number | null;
+  contact_factor?: number | null;
+  coil_condition_slope: number;
+}
+
+export interface ApplyProcessRequest {
+  unit_system?: UnitSystem;
+  pressure: number;
+  entering_state: Partial<PsychroState>;
+  mass_flow_dry_air?: number | null;
+  volumetric_flow?: number | null;
+  flow_unit?: string | null;
+  sensible_load?: number | null;
+  latent_load?: number | null;
+  total_load?: number | null;
+  sensible_heat_ratio?: number | null;
+  load_unit?: string | null;
+}
+
+export interface ApplyProcessResponse {
+  entering_state: PsychroState;
+  leaving_state: PsychroState;
+  dry_air_mass_flow: number;
+  sensible_load: number;
+  latent_load: number;
+  total_load: number;
+  sensible_heat_ratio: number;
+  delta_t_dry_bulb: number;
+  delta_hum_ratio: number;
+  delta_enthalpy: number;
+  angle_deg: number;
+  direction_16: string;
+  process_type: string;
+  process_label: string;
+  sensible_component: string;
+  latent_component: string;
+  dominant_component: string;
+  condensation_rate?: number | null;
+}
+
 // Reusable fetch function with error handling
 async function fetchPsychrolib<T>(endpoint: string, body: any): Promise<T> {
   const isServer = typeof window === "undefined";
@@ -131,4 +204,13 @@ export const psychroCalc = {
     
   classifyProcess: (request: ProcessClassifyRequest) => 
     fetchPsychrolib<ProcessClassifyResponse>("/process/classify", request),
+    
+  atmosphereFromAltitude: (request: AltitudeInput) =>
+    fetchPsychrolib<StdAtmState | StdAtmBatch>("/atmosphere/from-altitude", request),
+    
+  coilAdpBf: (request: CoilAdpBfRequest) =>
+    fetchPsychrolib<CoilAdpBfResponse>("/process/coil-adp-bf", request),
+    
+  applyProcess: (request: ApplyProcessRequest) =>
+    fetchPsychrolib<ApplyProcessResponse>("/process/apply-process", request),
 };
