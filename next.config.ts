@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
         source: '/api/comfort/:path*',
         destination: 'https://api.proexergy.com/comfort/:path*',
       },
+      {
+        source: '/api/solar/:path*',
+        destination: 'https://api.proexergy.com/solar/:path*',
+      },
     ];
   },
 };

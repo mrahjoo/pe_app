@@ -47,6 +47,16 @@ export default function DashboardHome() {
             </CardHeader>
           </Card>
         </Link>
+        <Link href="/dashboard/solar" className="block group">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader>
+              <CardTitle className="group-hover:text-primary transition-colors">Solar Position & Irradiance</CardTitle>
+              <CardDescription>
+                Calculate solar position, clear-sky irradiance, shading geometry, and window heat gain (NREL SPA).
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
       </div>
     </div>
   );
