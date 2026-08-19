@@ -20,10 +20,7 @@ export async function deleteConversation(id: string) {
     return { success: false, error: 'Conversation not found' };
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.message.deleteMany({ where: { conversationId: id } });
-    await tx.conversation.delete({ where: { id } });
-  });
+  await prisma.conversation.update({ where: { id }, data: { isDeleted: true } });
 
   revalidatePath('/agent');
   revalidatePath('/agent/[id]', 'page');

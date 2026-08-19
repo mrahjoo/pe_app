@@ -11,6 +11,7 @@ model Conversation {
   id        String   @id @default(cuid())
   userId    String
   title     String   @default("New Chat")
+  isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   messages  Message[]

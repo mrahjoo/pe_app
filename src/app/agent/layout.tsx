@@ -22,7 +22,7 @@ export default async function AgentLayout({
 
   // Fetch all user conversations
   const conversations = await prisma.conversation.findMany({
-    where: { userId },
+    where: { userId, isDeleted: false },
     orderBy: { createdAt: 'desc' },
   });
 
